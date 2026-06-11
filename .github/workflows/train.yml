@@ -1,0 +1,58 @@
+name: Train Model
+
+on:
+  workflow_dispatch:
+    inputs:
+      experiment_name:
+        description: "Experiment name (used as data lake sub-folder)"
+        required: true
+        default: "experiment-1"
+      upload_to_drive:
+        description: "Upload artifacts to Google Drive"
+        type: boolean
+        default: false
+
+jobs:
+  train:
+    name: Train
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Train model
+        run: python main.py
+        env:
+          PYTHONPATH: .
+          EXPERIMENT_NAME: ${{ github.event.inputs.experiment_name }}
+
+      - name: Upload artifacts to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-${{ github.event.inputs.experiment_name }}
+          path: data/
+          retention-days: 30
+
+      - name: Upload to Google Drive
+        if: ${{ github.event.inputs.upload_to_drive == 'true' }}
+        run: python -c "
+from utils import upload_to_data_lake
+import os
+result = upload_to_data_lake(
+    local_path='data/report.csv',
+    lake_root='DataLake',
+    sub_folder=os.environ['EXPERIMENT_NAME']
+)
+print(f'Uploaded: {result}')
+"
+        env:
+          PYTHONPATH: .
+          EXPERIMENT_NAME: ${{ github.event.inputs.experiment_name }}
+          GOOGLE_TOKEN: ${{ secrets.GOOGLE_TOKEN }}
