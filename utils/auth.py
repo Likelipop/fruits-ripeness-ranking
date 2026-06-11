@@ -12,7 +12,9 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 
 TOKEN_PATH = os.path.join(_HERE, "..", "token.json")
 CREDENTIALS_PATH = os.path.join(
-    _HERE, "..", "client_secret_1044033218170-re4j4nea8s73toldtprjjn3o785gqmin.apps.googleusercontent.com.json"
+    _HERE,
+    "..",
+    "client_secret_1044033218170-re4j4nea8s73toldtprjjn3o785gqmin.apps.googleusercontent.com.json",
 )
 
 

@@ -3,7 +3,9 @@ from utils import upload_file, upload_to_data_lake
 
 if __name__ == "__main__":
     # Simple upload to a specific folder ID
-    result = upload_file("data/report.csv", folder_id="1TAYvnFJndClmvYc8819ulF0hgRdlr2en")
+    result = upload_file(
+        "data/report.csv", folder_id="1TAYvnFJndClmvYc8819ulF0hgRdlr2en"
+    )
     print(f"Uploaded: {result['name']} → {result['id']}")
 
     # Upload into the DataLake hierarchy  (DataLake/raw/2024-06/report.csv)
