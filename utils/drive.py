@@ -1,4 +1,3 @@
-import os
 import mimetypes
 from pathlib import Path
 
