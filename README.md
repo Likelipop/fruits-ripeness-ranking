@@ -122,7 +122,7 @@ I wanted to learn how quantization works under the hood and how it affects model
 ### What I Learned
 Through this project, I learned the following:
 1. **Dynamic vs. Static Quantization**: I learned that dynamic quantization only quantizes weights offline (activations are quantized on-the-fly), which is simple but introduces runtime scaling overhead. On the other hand, Post-Training Static Quantization (PTSQ) quantizes both weights and activations offline using calibration data, avoiding runtime scale computation and achieving the lowest latency.
-2. **Model Footprint Reduction**: I learned that mapping 32-bit floating-point values ($float32$) to 8-bit integers ($int8$) yields an approximate **4x** (or ~75%) reduction in model file size, allowing models to fit into cache memory more easily.
+2. **Model Footprint Reduction**: I learned that mapping 32-bit floating-point values (`float32`) to 8-bit integers (`int8`) yields an approximate **4x** (or ~75%) reduction in model file size, allowing models to fit into cache memory more easily.
 3. **Module Fusion**: I learned that fusing contiguous layer pairs like `Conv2d + ReLU` reduces intermediate memory reads/writes, improving cache locality.
 
 ---
@@ -130,17 +130,17 @@ Through this project, I learned the following:
 ### Quantization Mathematics
 Quantization maps a continuous, high-precision range of values to a discrete, lower-precision integer range. In PyTorch, this mapping is defined by:
 
-$$q = \text{round}\left(\frac{x}{\text{scale}}\right) + \text{zero\_point}$$
+$$q = \text{round}\left(\frac{x}{\text{scale}}\right) + \text{zero-point}$$
 
 To retrieve the approximated floating-point representation (dequantization):
 
-$$\tilde{x} = (q - \text{zero\_point}) \times \text{scale}$$
+$$\tilde{x} = (q - \text{zero-point}) \times \text{scale}$$
 
 Where:
 - $x$ is the input floating-point value.
 - $q$ is the quantized 8-bit integer.
 - $\text{scale}$ is a positive floating-point factor scaling the range.
-- $\text{zero\_point}$ is an integer shift mapping to floating-point $0.0$.
+- $\text{zero-point}$ is an integer shift mapping to floating-point $0.0$.
 
 ---
 
