@@ -114,21 +114,45 @@ This single command will:
   python main.py --benchmark models/fruit_model.pth models/fruit_model_quantized.pth
   ```
 
+## 🔬 Quantization Theory & Learnings
+
+### Motivation
+I wanted to learn how quantization works under the hood and how it affects model footprint, inference latency, and accuracy when deploying to resource-constrained environments like commodity CPUs. 
+
+### What I Learned
+Through this project, I learned the following:
+1. **Dynamic vs. Static Quantization**: I learned that dynamic quantization only quantizes weights offline (activations are quantized on-the-fly), which is simple but introduces runtime scaling overhead. On the other hand, Post-Training Static Quantization (PTSQ) quantizes both weights and activations offline using calibration data, avoiding runtime scale computation and achieving the lowest latency.
+2. **Model Footprint Reduction**: I learned that mapping 32-bit floating-point values ($float32$) to 8-bit integers ($int8$) yields an approximate **4x** (or ~75%) reduction in model file size, allowing models to fit into cache memory more easily.
+3. **Module Fusion**: I learned that fusing contiguous layer pairs like `Conv2d + ReLU` reduces intermediate memory reads/writes, improving cache locality.
+
 ---
 
-## 🔬 Quantization Theory
-
-### What is Post-Training Static Quantization (PTSQ)?
-In neural networks, weights and activations are typically represented as 32-bit floating-point numbers (`float32`). Post-Training Static Quantization maps these values to 8-bit integers (`int8`), which:
-- Reduces memory bandwidth and model file storage by **~4x**.
-- Speeds up computation on CPUs by leveraging INT8 hardware matrix multiplication operations.
-
-Static quantization requires a **calibration phase** where representative input samples are run through the model. This allows PyTorch's quantization engine to compute scale and zero-point parameters for activations using the formula:
+### Quantization Mathematics
+Quantization maps a continuous, high-precision range of values to a discrete, lower-precision integer range. In PyTorch, this mapping is defined by:
 
 $$q = \text{round}\left(\frac{x}{\text{scale}}\right) + \text{zero\_point}$$
 
-### Module Fusing
-Before quantization, contiguous layers like `Conv2d` -> `BatchNorm2d` -> `ReLU` are fused together into single execution blocks. This eliminates intermediate activation memory transfers, further speeding up CPU latency. Fusing is handled automatically in our pipeline by calling:
+To retrieve the approximated floating-point representation (dequantization):
+
+$$\tilde{x} = (q - \text{zero\_point}) \times \text{scale}$$
+
+Where:
+- $x$ is the input floating-point value.
+- $q$ is the quantized 8-bit integer.
+- $\text{scale}$ is a positive floating-point factor scaling the range.
+- $\text{zero\_point}$ is an integer shift mapping to floating-point $0.0$.
+
+---
+
+### Module Fusing in Practice
+Before applying static quantization, contiguous operations in the feature extractor (specifically `Conv2d` and `ReLU` pairs) are fused into a single unified `ConvReLU2d` operator:
+
 ```python
-model.model.fuse_model()
+torch.ao.quantization.fuse_modules(
+    model.model.feature_extractor,
+    [['0', '1'], ['3', '4'], ['6', '7'], ['9', '10']],
+    inplace=True
+)
 ```
+
+Fusing eliminates the memory overhead of writing out intermediate activation maps and reading them back for the activation function, speeding up CPU execution significantly.
