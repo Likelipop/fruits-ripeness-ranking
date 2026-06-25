@@ -80,7 +80,13 @@ pip install -r requirements.txt
 
 ## 🏃 Replication Guide
 
-Follow these steps to replicate the experiment:
+This project, mainly crafted from four notebooks files: 
+1. ETL.ipynb,
+2. training_DeepPermNet_Puzzle33.ipynb (visit https://github.com/Likelipop/puzzle33 for more)
+3. training_Downstream_FruitRanking.ipynb
+4. quantize.ipynb.
+   
+you can collectively load each notebooks, configure you google drive, and run all cells to replicate this (this is what i did because of my poor laptop configuration haha), but when you run it on notebook, you can see the well-organized results, this is a plus. Besides, you can can follow these steps to replicate the experiment right on your local environmennt:
 
 ### Step 1: Place Your Model Checkpoint
 Place your trained float32 model checkpoint (state dictionary saved from your Colab training run) in a `models/` directory:
